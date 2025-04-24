@@ -1,145 +1,67 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
-import {FormGenInfo,FormEducation,FormExperience,Display,Button} from "./components.jsx"
+import {Cards} from "./Cards.jsx"
+import {getPokemonImages,shuffle} from "./getPokemonImages.js"
 
 function App() {
 
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [email, setEmail] = useState('');
-  const [schoolName, setSchoolName] = useState('');
-  const [diplomaTitle, setDiplomaTitle] = useState('');
-  const [diplomaDate, setDiplomaDate] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [positionTitle, setPositionTitle] = useState('');
-  const [mainRespo, setMainRespo] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [score,setScore] = useState(0);
+  const [bestScore,setBestScore]= useState(0);
+  const [pokemonCards,setPokemonCards] = useState([]);
 
 
-  const [displayedFirstName, setDisplayedFirstName] = useState('');
-  const [displayedLastName, setDisplayedLastName] = useState('');
-  const [displayedPhoneNumber, setDisplayedPhoneNumber] = useState('');
-  const [displayedEmail, setDisplayedEmail] = useState('');
-  const [displayedSchoolName, setDisplayedSchoolName] = useState('');
-  const [displayedDiplomaTitle, setDisplayedDiplomaTitle] = useState('');
-  const [displayedDiplomaDate, setDisplayedDiplomaDate] = useState('');
-  const [displayedCompanyName, setDisplayedCompanyName] = useState('');
-  const [displayedPositionTitle, setDisplayedPositionTitle] = useState('');
-  const [displayedMainRespo, setDisplayedMainRespo] = useState('');
-  const [displayedStartDate, setDisplayedStartDate] = useState('');
-  const [displayedEndDate, setDisplayedEndDate] = useState('');
- 
+  useEffect(() => {
+    async function fetchData() {
+      const initialCards = await getPokemonImages();
+      setPokemonCards(initialCards);
+    }
 
-  const person = {
-    genInfo: {firstName,
-    lastName,
-    phoneNumber,
-    email},
-    education :{schoolName,diplomaTitle,diplomaDate},
-    experience : {companyName,positionTitle,mainRespo,startDate,endDate}
-  }
-
-  const displayedPerson = {
-    genInfo: {firstName: displayedFirstName,
-      lastName: displayedLastName,
-      phoneNumber: displayedPhoneNumber,
-      email: displayedEmail},
-      education :{schoolName:displayedSchoolName,diplomaTitle:displayedDiplomaTitle,diplomaDate:displayedDiplomaDate},
-      experience : {companyName:displayedCompanyName,positionTitle:displayedPositionTitle,mainRespo:displayedMainRespo,
-        startDate:displayedStartDate,endDate:displayedEndDate}
-
-  }
-
- function handleSubmit(){
-
-  setDisplayedFirstName(firstName);
-  setDisplayedLastName(lastName);
-  setDisplayedPhoneNumber(phoneNumber);
-  setDisplayedEmail(email);
-  setDisplayedSchoolName(schoolName);
-  setDisplayedDiplomaTitle(diplomaTitle);
-  setDisplayedDiplomaDate(diplomaDate);
-  setDisplayedCompanyName(companyName);
-  setDisplayedPositionTitle(positionTitle);
-  setDisplayedMainRespo(mainRespo);
-  setDisplayedStartDate(startDate);
-  setDisplayedEndDate(endDate);
-
-  setFirstName("");
-  setLastName("");
-  setPhoneNumber("");
-  setEmail("");
-  setSchoolName("");
-  setDiplomaTitle("");
-  setDiplomaDate("");
-  setCompanyName("");
-  setPositionTitle("");
-  setMainRespo("");
-  setStartDate("");
-  setEndDate("");
-
- } 
-
- function handleEdit(){
-  setFirstName(displayedFirstName);
-  setLastName(displayedLastName);
-  setPhoneNumber(displayedPhoneNumber);
-  setEmail(displayedEmail);
-  setSchoolName(displayedSchoolName);
-  setDiplomaTitle(displayedDiplomaTitle);
-  setDiplomaDate(displayedDiplomaDate);
-  setCompanyName(displayedCompanyName);
-  setPositionTitle(displayedPositionTitle);
-  setMainRespo(displayedMainRespo);
-  setStartDate(displayedStartDate);
-  setEndDate(displayedEndDate);
- } 
+    fetchData();
+  }, []); 
 
 
- return(
-  <>
+  function handleClick(e) {
 
-<div className="formContainer">
+    const cartID=e.currentTarget.id;
 
-<h1>CV Application</h1>
+    const selectedCard = pokemonCards.find((card) =>
+      card.id === cartID
+    );
+  
+    if (selectedCard.isClicked) {
+      if (bestScore<score) setBestScore(score);
+      setScore(0);
+      setPokemonCards(prevPokemonCards => {
+        return shuffle(
+          prevPokemonCards.map(card => ({ ...card, isClicked: false })))
+      })}
 
-<FormGenInfo
-person={person.genInfo}
-setFirstName={setFirstName}
-setLastName={setLastName}
-setPhoneNumber={setPhoneNumber}
-setEmail={setEmail}
-/>
-<FormEducation education={person.education}
-setSchoolName={setSchoolName}
-setDiplomaTitle={setDiplomaTitle}
-setDiplomaDate={setDiplomaDate}
-/>
+    
+    else {
+      setScore((prevScore) => prevScore + 1);
+      setPokemonCards(prevPokemonCards => {
+        const newCards = [...prevPokemonCards];
+        const cardIndex = newCards.findIndex(card => 
+          card.id === cartID)
+          newCards[cardIndex] = { ...selectedCard, isClicked: true };
+        return shuffle(newCards);})
+      }
 
-<FormExperience experience={person.experience}
-setCompanyName={setCompanyName}
-setPositionTitle={setPositionTitle}
-setMainRespo={setMainRespo}
-setStartDate={setStartDate}
-setEndDate={setEndDate}
-/>
+    }
 
-<div className="buttons">
-<Button handleClick={handleSubmit}/>
-<Button text="Edit" handleClick = {handleEdit} /> 
-</div>
-</div>
+  return (
+    <>
+  <h1>Play memory card!</h1>
+  <p>There are 12 different cards on the board. Click on each card once until you click them all. </p>
 
- <div className="display">
-<Display 
-person={displayedPerson} 
- />
-</div>
- </>
- )
+  <h2>Score: {score} </h2>
+  <h2>Best score: {bestScore}</h2>
+
+  <Cards cards={pokemonCards} handleClick={handleClick} />
+
+  </>
+  )
 }
 
 export default App
